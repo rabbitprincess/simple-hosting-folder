@@ -29,16 +29,24 @@ func (a *App) Run(dataPath, certPath, keyPath string) error {
 	a.server = &http.Server{
 		Addr:         ":443",
 		Handler:      http.DefaultServeMux,
-		TLSConfig:    &tls.Config{MinVersion: tls.VersionTLS12},
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
+	if certPath != "" && keyPath != "" {
+		a.server.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	}
 
 	a.logger.Info().Msg("Starting server on :443")
 
-	if err := a.server.ListenAndServeTLS(certPath, keyPath); err != nil && err != http.ErrServerClosed {
-		return fmt.Errorf("could not listen on %s: %w", a.server.Addr, err)
+	if certPath != "" && keyPath != "" {
+		if err := a.server.ListenAndServeTLS(certPath, keyPath); err != nil && err != http.ErrServerClosed {
+			return fmt.Errorf("could not listen on %s: %w", a.server.Addr, err)
+		}
+	} else {
+		if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			return fmt.Errorf("could not listen on %s: %w", a.server.Addr, err)
+		}
 	}
 
 	return nil

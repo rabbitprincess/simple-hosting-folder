@@ -1,4 +1,4 @@
 .PHONY=build
 
 build:
-	go build  ./cmd/
+	go build -o main ./cmd/
